@@ -9,6 +9,55 @@ library(reshape2)
 library(plotrix)
 library(stats)
 
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#+++++    Helper function to render and save plots     +++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+# UI side
+plotDownloadUI <- function(id, height = 400) {
+  ns <- NS(id)
+  tagList(
+    fluidRow(
+      plotOutput(ns('plot'), height = height)
+    ),
+    fluidRow(
+      column(
+        2, offset = 0,
+        numericInput(ns("pwidth"), "Img Width", value = 5, min = 5, max = 20)
+      ),
+      column(
+        2, offset = 2,
+        numericInput(ns("pheight"), "Img Height", value = 5, min = 5, max = 20)
+      ),
+      column(
+        2, offset = 2, br(),
+        downloadButton(ns("download_plot"), "Download figure")
+      )
+    )
+  )
+}
+
+# Server side
+plotDownload <- function(input, output, session, plotFun) {
+  output$plot <- renderPlot({
+    plotFun()
+  })
+  
+  output$download_plot <- downloadHandler(
+    filename = function() {
+      "plot.png"
+    },
+    content = function(file) {
+      ggsave(file, plotFun(), width = input$pwidth, height = input$pwidth)
+    }
+  )
+}
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++    Server     +++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 server <- function(input, output, session) {
   
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -41,11 +90,11 @@ server <- function(input, output, session) {
   #+++++++++++++++    Capture curr TAB     +++++++++++++++++++
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   capture_curr_df <- function(input) {
-    live_table <- isolate(input$mytable)
+    live_table <- isolate(input$exceltable)
     row_names <-
       input$RF %>% strsplit(., ",") %>% lapply(., trimws) %>% unlist()
     if (!is.null(live_table)) {
-      dfin <- hot_to_r(input$mytable) %>% 
+      dfin <- hot_to_r(input$exceltable) %>% 
         as.data.frame(., row.names = row_names) %>% 
         t(.) %>% 
         melt(data = .)
@@ -148,7 +197,7 @@ server <- function(input, output, session) {
   #+++++++++++++++    Outputs to UI     ++++++++++++++++++++++
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   # Output table
-  output$mytable <- renderRHandsontable({
+  output$exceltable <- renderRHandsontable({
     rhandsontable(
       reactive(init_table(input))(),
       useTypes = T,
@@ -157,19 +206,24 @@ server <- function(input, output, session) {
     )
   })
   
+  # ANOVA table
   output$anovatable <- renderPrint({
     text_aov_reactive()
   })
   
-  output$barPlot <- renderPlot({
-    bar_plot_reactive()
-  }) 
+  # Bar plot
+  callModule(plotDownload, "barPlot", bar_plot_reactive)
   
+  # Fisher table
   output$fischertable <- renderPrint({
     text_fisher_reactive()
   })
   
 }
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++   Graphical User Interface     +++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ui <- fluidPage(
   useShinyjs(),
@@ -192,14 +246,18 @@ ui <- fluidPage(
     ),
     mainPanel(
       tabsetPanel(
-        tabPanel("Input Dataset", rHandsontableOutput("mytable")),
+        tabPanel("Input Dataset", rHandsontableOutput("exceltable")),
         tabPanel("ANOVA Table",verbatimTextOutput("anovatable")),
         tabPanel("Fisher Table",verbatimTextOutput("fischertable")),
-        tabPanel("Bar charts",plotOutput("barPlot"))
+        tabPanel("Bar charts",plotDownloadUI("barPlot"))
       )
     )
     
   )
 )
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++    Entrypoint     +++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 shinyApp(ui = ui, server = server)
