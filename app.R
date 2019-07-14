@@ -124,7 +124,7 @@ server <- function(input, output, session) {
     }
     data_sum<-ddply(data, groupnames, .fun=summary_func,
                     varname)
-    data_sum <- rename(data_sum, c("mean" = varname))
+    data_sum <- plyr::rename(data_sum, c("mean" = varname))
     return(data_sum)
   }
   
