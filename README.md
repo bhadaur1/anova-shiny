@@ -25,6 +25,6 @@ A shiny web application to perform 2-way ANOVA, pairwise t-tests and display bar
 
 ![Pairwise t-test output tab](/Screenshots/Pairwise-t-test-output.png?raw=true "Pairwise t-test output tab")
 
-#### Landing page -- input data here
+#### Barplot using ggplot
 
 ![Barchart output tab](/Screenshots/Barchart-output.png?raw=true "Barchart output tab")
