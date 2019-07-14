@@ -80,7 +80,7 @@ server <- function(input, output, session) {
   
   get_pairwise_t_test_values <- function(dfin) {
     fdata<-dfin
-    fdata$CFRF <- with(dfin, interaction(RF,  CF))
+    fdata$CFRF <- with(dfin, interaction(RF,  CF, sep = ':'))
     return(pairwise.t.test(fdata$value, fdata$CFRF, p.adjust.method = "none"))
   }
   
