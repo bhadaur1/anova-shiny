@@ -235,7 +235,7 @@ server <- function(input, output, session) {
 
 ui <- fluidPage(
   useShinyjs(),
-  titlePanel("Two-way ANOVA analysis"),
+  titlePanel("WebNova"),
   tags$head(tags$script(src = "message-handler.js")),
   sidebarLayout(
     sidebarPanel(
