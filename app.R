@@ -123,12 +123,20 @@ server <- function(input, output, session) {
   #+++++++++++++++    Compute modules     ++++++++++++++++++++
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   
-  getaovmodel <- function(dfin) {
+  getaovmodel <- function(dfin, input) {
+    row_size <- input$RF %>% strsplit(., ",") %>% lapply(., trimws) %>% unlist() %>% length()
+    if (row_size < 2) { # Assuming one-way ANOVA
+      return (aov(value ~ CF, data=dfin))
+    }
     return(aov(value ~ CF * RF, data=dfin))
   }
   
-  get_pairwise_t_test_values <- function(dfin) {
+  get_pairwise_t_test_values <- function(dfin, input) {
     fdata<-dfin
+    row_size <- input$RF %>% strsplit(., ",") %>% lapply(., trimws) %>% unlist() %>% length()
+    if (row_size < 2) { # Assuming pairwise t-test among CF
+      return (pairwise.t.test(fdata$value, fdata$CF, p.adjust.method = "none"))
+    }
     fdata$CFRF <- with(dfin, interaction(RF,  CF, sep = ':'))
     return(pairwise.t.test(fdata$value, fdata$CFRF, p.adjust.method = "none"))
   }
@@ -139,7 +147,7 @@ server <- function(input, output, session) {
   
   text_aov_reactive <- eventReactive(input$goBtn, {
     dfin <- capture_curr_df(input)
-    aov.model<-getaovmodel(dfin)
+    aov.model<-getaovmodel(dfin, input)
     print(aov.model)
     br()
     br()
@@ -158,7 +166,7 @@ server <- function(input, output, session) {
   
   text_fisher_reactive <- eventReactive(input$goBtn, {
     dfin <- capture_curr_df(input)
-    get_fisher<-get_pairwise_t_test_values(dfin)
+    get_fisher<-get_pairwise_t_test_values(dfin, input)
     print(get_fisher)
   })
   
