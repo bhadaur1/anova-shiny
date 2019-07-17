@@ -3,7 +3,8 @@ A shiny web application to perform 2-way ANOVA, pairwise t-tests and display bar
 
 ### TODO:
  * Check Fisher LSD instead of pairwise t test
- * Plot tab should offer to download
+ * ~~Implement support for dataset without row factors (one way ANOVA etc)
+ * ~~Plot tab should offer to download
  * geom_text in barplot in the center
  * Action button "Calculate" should automatically freeze
 
