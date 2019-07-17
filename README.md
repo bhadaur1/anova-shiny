@@ -1,5 +1,5 @@
-# anova-shiny
-A shiny web application to perform 2-way ANOVA, pairwise t-tests and display bar charts
+# anova-shiny (now WebNova)
+A shiny web application to perform 1/2-way ANOVA, pairwise t-tests and display bar charts
 
 ### TODO:
  * Check Fisher LSD instead of pairwise t test
