@@ -18,22 +18,52 @@ library(stats)
 plotDownloadUI <- function(id, height = 400) {
   ns <- NS(id)
   tagList(
+    fluidRow(plotOutput(ns('plot'), height = height)),
     fluidRow(
-      plotOutput(ns('plot'), height = height)
+      column(
+        6,
+        offset = 0,
+        selectizeInput(
+          "selectvars",
+          "Select:",
+          choices = "",
+          selected = "",
+          multiple = TRUE
+        )
+      ),
+      column(
+        2,
+        offset = 2,
+        br(),
+        br(),
+        actionButton("replot", "(Re)plot", icon = icon("undo"))
+      )
     ),
     fluidRow(
       column(
-        2, offset = 0,
-        numericInput(ns("pwidth"), "Img Width", value = 5, min = 5, max = 20)
+        2,
+        offset = 0,
+        numericInput(
+          ns("pwidth"),
+          "Img Width",
+          value = 5,
+          min = 5,
+          max = 20
+        )
       ),
       column(
-        2, offset = 2,
-        numericInput(ns("pheight"), "Img Height", value = 5, min = 5, max = 20)
+        2,
+        offset = 2,
+        numericInput(
+          ns("pheight"),
+          "Img Height",
+          value = 5,
+          min = 5,
+          max = 20
+        )
       ),
-      column(
-        2, offset = 2, br(),
-        downloadButton(ns("download_plot"), "Download figure")
-      )
+      column(2, offset = 2, br(),
+             downloadButton(ns("download_plot"), "Download figure"))
     )
   )
 }
@@ -49,7 +79,10 @@ plotDownload <- function(input, output, session, plotFun) {
       "plot.png"
     },
     content = function(file) {
-      ggsave(file, plotFun(), width = input$pwidth, height = input$pwidth)
+      ggsave(file,
+             plotFun(),
+             width = input$pwidth,
+             height = input$pwidth)
     }
   )
 }
@@ -59,22 +92,20 @@ plotDownload <- function(input, output, session, plotFun) {
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 server <- function(input, output, session) {
-  
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   #+++++++++++++++++    Initialize TAB     +++++++++++++++++++
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   init_table <- function(input) {
-    
     col_names <-
-      input$CF %>% strsplit(., ",") %>% 
-      lapply(., trimws) %>% 
-      unlist() %>% 
+      input$CF %>% strsplit(., ",") %>%
+      lapply(., trimws) %>%
+      unlist() %>%
       rep(., each = input$rep)
     
     row_names <-
-      input$RF %>% 
-      strsplit(., ",") %>% 
-      lapply(., trimws) %>% 
+      input$RF %>%
+      strsplit(., ",") %>%
+      lapply(., trimws) %>%
       unlist()
     
     data <-
@@ -94,9 +125,9 @@ server <- function(input, output, session) {
     row_names <-
       input$RF %>% strsplit(., ",") %>% lapply(., trimws) %>% unlist()
     if (!is.null(live_table)) {
-      dfin <- hot_to_r(input$exceltable) %>% 
-        as.data.frame(., row.names = row_names) %>% 
-        t(.) %>% 
+      dfin <- hot_to_r(input$exceltable) %>%
+        as.data.frame(., row.names = row_names) %>%
+        t(.) %>%
         melt(data = .)
       names(dfin) <- c("CF", "RF", "value")
       return(dfin)
@@ -124,17 +155,21 @@ server <- function(input, output, session) {
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   
   getaovmodel <- function(dfin, input) {
-    row_size <- input$RF %>% strsplit(., ",") %>% lapply(., trimws) %>% unlist() %>% length()
-    if (row_size < 2) { # Assuming one-way ANOVA
-      return (aov(value ~ CF, data=dfin))
+    row_size <-
+      input$RF %>% strsplit(., ",") %>% lapply(., trimws) %>% unlist() %>% length()
+    if (row_size < 2) {
+      # Assuming one-way ANOVA
+      return (aov(value ~ CF, data = dfin))
     }
-    return(aov(value ~ CF * RF, data=dfin))
+    return(aov(value ~ CF * RF, data = dfin))
   }
   
   get_pairwise_t_test_values <- function(dfin, input) {
-    fdata<-dfin
-    row_size <- input$RF %>% strsplit(., ",") %>% lapply(., trimws) %>% unlist() %>% length()
-    if (row_size < 2) { # Assuming pairwise t-test among CF
+    fdata <- dfin
+    row_size <-
+      input$RF %>% strsplit(., ",") %>% lapply(., trimws) %>% unlist() %>% length()
+    if (row_size < 2) {
+      # Assuming pairwise t-test among CF
       return (pairwise.t.test(fdata$value, fdata$CF, p.adjust.method = "none"))
     }
     fdata$CFRF <- with(dfin, interaction(RF,  CF, sep = ':'))
@@ -147,7 +182,7 @@ server <- function(input, output, session) {
   
   text_aov_reactive <- eventReactive(input$goBtn, {
     dfin <- capture_curr_df(input)
-    aov.model<-getaovmodel(dfin, input)
+    aov.model <- getaovmodel(dfin, input)
     print(aov.model)
     br()
     br()
@@ -156,7 +191,9 @@ server <- function(input, output, session) {
     br()
     br()
     cat("++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
-    cat("\n"); cat("Coefficients"); cat("\n")
+    cat("\n")
+    cat("Coefficients")
+    cat("\n")
     print(aov.model$coefficients)
   })
   
@@ -166,7 +203,7 @@ server <- function(input, output, session) {
   
   text_fisher_reactive <- eventReactive(input$goBtn, {
     dfin <- capture_curr_df(input)
-    get_fisher<-get_pairwise_t_test_values(dfin, input)
+    get_fisher <- get_pairwise_t_test_values(dfin, input)
     print(get_fisher)
   })
   
@@ -174,31 +211,44 @@ server <- function(input, output, session) {
   #+++++++++++++++    Reactive barPlot     +++++++++++++++++++
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   
-  data_summary <- function(data, varname, groupnames){
-    summary_func <- function(x, col){
-      c(mean = mean(x[[col]], na.rm=TRUE),
-        sd = sd(x[[col]], na.rm=TRUE))
+  data_summary <- function(data, varname, groupnames) {
+    summary_func <- function(x, col) {
+      xcol <- x[[col]]
+      c(mean = mean(xcol, na.rm = TRUE),
+        sd = sd(xcol, na.rm = TRUE))
     }
-    data_sum<-ddply(data, groupnames, .fun=summary_func,
-                    varname)
+    data_sum <- ddply(data, groupnames, .fun = summary_func,
+                      varname)
     data_sum <- plyr::rename(data_sum, c("mean" = varname))
     return(data_sum)
   }
   
-  bar_plot_reactive <- eventReactive(input$goBtn, {
-    dfin <- capture_curr_df(input)
-    df3 <- data_summary(dfin, varname="value", 
-                        groupnames=c("CF", "RF"))
+  bar_plot_reactive <- eventReactive(input$replot, {
+    cols <- input$selectvars %>% sort()
+    dfin <- capture_curr_df(input) %>% filter(., RF %in% cols)
+    df3 <- data_summary(dfin,
+                        varname = "value",
+                        groupnames = c("CF", "RF"))
     
     # Standard deviation of the mean as error bar
-    p <- ggplot(df3, aes(x=RF, y=value, fill=CF)) + 
-      geom_bar(stat="identity", position=position_dodge()) +
+    p <- ggplot(df3, aes(x = RF, y = value, fill = CF)) +
+      geom_bar(stat = "identity", position = position_dodge()) +
       # geom_text(aes(label=round(value,1)), vjust=1.6, color="white",
       #           position = position_dodge(0.9), size=3.5) +
-      geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=.2,
-                    position=position_dodge(.9))
+      geom_errorbar(aes(ymin = value - sd, ymax = value + sd),
+                    width = .2,
+                    position = position_dodge(.9))
     
-    p + scale_fill_brewer(palette="Paired") + theme_minimal()
+    p + scale_fill_brewer(palette = "Paired") + theme_minimal()
+  })
+  
+  observe({
+    row_names <-
+      input$RF %>% strsplit(., ",") %>% lapply(., trimws) %>% unlist()
+    updateSelectizeInput(session,
+                         "selectvars",
+                         choices = row_names,
+                         selected = row_names[1])
   })
   
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -252,14 +302,12 @@ ui <- fluidPage(
       actionButton("unfBtn", "Unfreeze"),
       actionButton("goBtn", "Calculate")
     ),
-    mainPanel(
-      tabsetPanel(
-        tabPanel("Input Dataset", rHandsontableOutput("exceltable")),
-        tabPanel("ANOVA Table",verbatimTextOutput("anovatable")),
-        tabPanel("Fisher Table",verbatimTextOutput("fischertable")),
-        tabPanel("Bar charts",plotDownloadUI("barPlot"))
-      )
-    )
+    mainPanel(tabsetPanel(
+      tabPanel("Input Dataset", rHandsontableOutput("exceltable")),
+      tabPanel("ANOVA Table", verbatimTextOutput("anovatable")),
+      tabPanel("Fisher Table", verbatimTextOutput("fischertable")),
+      tabPanel("Bar charts", plotDownloadUI("barPlot"))
+    ))
     
   )
 )
