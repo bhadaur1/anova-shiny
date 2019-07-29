@@ -215,7 +215,7 @@ server <- function(input, output, session) {
     summary_func <- function(x, col) {
       xcol <- x[[col]]
       c(mean = mean(xcol, na.rm = TRUE),
-        sd = sd(xcol, na.rm = TRUE))
+        sd = std.error(xcol,na.rm=T)) #sd(xcol, na.rm = TRUE))
     }
     data_sum <- ddply(data, groupnames, .fun = summary_func,
                       varname)
