@@ -283,33 +283,29 @@ server <- function(input, output, session) {
 #++++++++++++   Graphical User Interface     +++++++++++++++
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-ui <- fluidPage(
-  useShinyjs(),
-  titlePanel("WebNova"),
-  tags$head(tags$script(src = "message-handler.js")),
-  sidebarLayout(
-    sidebarPanel(
-      textInput("CF", "Column factors separated by comma", "Control, Group A"),
-      numericInput(
-        "rep",
-        "# observations per column factor",
-        value = 2,
-        min = 2,
-        max = 1000
-      ),
-      textInput("RF", "Row factors separated by comma", "Analysis 1, Analysis 2"),
-      actionButton("freeBtn", "Freeze"),
-      actionButton("unfBtn", "Unfreeze"),
-      actionButton("goBtn", "Calculate")
-    ),
-    mainPanel(tabsetPanel(
-      tabPanel("Input Dataset", rHandsontableOutput("exceltable")),
-      tabPanel("ANOVA Table", verbatimTextOutput("anovatable")),
-      tabPanel("Fisher Table", verbatimTextOutput("fischertable")),
-      tabPanel("Bar charts", plotDownloadUI("barPlot"))
-    ))
-    
-  )
+ui <- navbarPage(
+  "WebNova",
+  tabPanel("Input Data",
+           sidebarLayout(
+             sidebarPanel(
+               textInput("CF", "Column factors separated by comma", "Control, Group A"),
+               numericInput(
+                 "rep",
+                 "# observations per column factor",
+                 value = 2,
+                 min = 2,
+                 max = 1000
+               ),
+               textInput("RF", "Row factors separated by comma", "Analysis 1, Analysis 2"),
+               actionButton("freeBtn", "Freeze"),
+               actionButton("unfBtn", "Unfreeze"),
+               actionButton("goBtn", "Calculate")
+             ),
+             mainPanel(rHandsontableOutput("exceltable"))
+           )),
+  tabPanel("ANOVA Table", verbatimTextOutput("anovatable")),
+  tabPanel("Fisher Table", verbatimTextOutput("fischertable")),
+  tabPanel("Bar charts", plotDownloadUI("barPlot"))
 )
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
