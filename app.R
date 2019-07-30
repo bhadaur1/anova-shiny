@@ -15,56 +15,37 @@ library(stats)
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 # UI side
-plotDownloadUI <- function(id, height = 400) {
+plotDownloadUI <- function(id, height = 400, width = 600) {
   ns <- NS(id)
-  tagList(
-    fluidRow(plotOutput(ns('plot'), height = height)),
-    fluidRow(
-      column(
-        6,
-        offset = 0,
-        selectizeInput(
-          "selectvars",
-          "Select:",
-          choices = "",
-          selected = "",
-          multiple = TRUE
-        )
+  sidebarLayout(
+    sidebarPanel(
+      selectizeInput(
+        "selectvars",
+        "Select:",
+        choices = "",
+        selected = "",
+        multiple = TRUE
       ),
-      column(
-        2,
-        offset = 2,
-        br(),
-        br(),
-        actionButton("replot", "(Re)plot", icon = icon("undo"))
-      )
+      actionButton("replot", "(Re)plot", icon = icon("undo")),
+      numericInput(
+        ns("pwidth"),
+        "Img Width",
+        value = 5,
+        min = 5,
+        max = 20
+      ),
+      numericInput(
+        ns("pheight"),
+        "Img Height",
+        value = 5,
+        min = 5,
+        max = 20
+      ),
+      downloadButton(ns("download_plot"), "Download figure")
     ),
-    fluidRow(
-      column(
-        2,
-        offset = 0,
-        numericInput(
-          ns("pwidth"),
-          "Img Width",
-          value = 5,
-          min = 5,
-          max = 20
-        )
-      ),
-      column(
-        2,
-        offset = 2,
-        numericInput(
-          ns("pheight"),
-          "Img Height",
-          value = 5,
-          min = 5,
-          max = 20
-        )
-      ),
-      column(2, offset = 2, br(),
-             downloadButton(ns("download_plot"), "Download figure"))
-    )
+    mainPanel(plotOutput(
+      ns('plot'), height = height, width = width
+    ))
   )
 }
 
