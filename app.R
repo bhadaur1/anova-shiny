@@ -225,7 +225,7 @@ server <- function(input, output, session) {
                     width = .2,
                     position = position_dodge(.9))
     
-    p + scale_fill_brewer(palette = "Paired") + theme_minimal() + labs(x = input$xlabel,
+    p + scale_fill_grey(start = .3, end = .9) + theme_bw() + labs(x = input$xlabel,
                                                                        y = input$ylabel,
                                                                        title = input$ptitle)
   })
