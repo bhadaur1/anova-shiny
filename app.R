@@ -15,18 +15,23 @@ library(stats)
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 # UI side
-plotDownloadUI <- function(id, height = 400, width = 600) {
+plotDownloadUI <- function(id, height = 600, width = 800) {
   ns <- NS(id)
   sidebarLayout(
     sidebarPanel(
       selectizeInput(
         "selectvars",
-        "Select:",
+        "Select row factors:",
         choices = "",
         selected = "",
         multiple = TRUE
       ),
+      textInput("xlabel", "X-axis label", "Row Factors"),
+      textInput("ylabel", "Y-axis label", "Values"),
+      textInput("ptitle", "Plot title", "Values vs. Row Factors"),
       actionButton("replot", "(Re)plot", icon = icon("undo")),
+      br(),
+      br(),
       numericInput(
         ns("pwidth"),
         "Img Width",
@@ -220,7 +225,9 @@ server <- function(input, output, session) {
                     width = .2,
                     position = position_dodge(.9))
     
-    p + scale_fill_brewer(palette = "Paired") + theme_minimal()
+    p + scale_fill_brewer(palette = "Paired") + theme_minimal() + labs(x = input$xlabel,
+                                                                       y = input$ylabel,
+                                                                       title = input$ptitle)
   })
   
   observe({
