@@ -178,10 +178,10 @@ server <- function(input, output, session) {
     br()
     br()
     cat("++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
-    cat("\n")
-    cat("Coefficients")
-    cat("\n")
-    print(aov.model$coefficients)
+    # cat("\n")
+    # cat("Coefficients")
+    # cat("\n")
+    # print(aov.model$coefficients)
   })
   
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -237,7 +237,7 @@ server <- function(input, output, session) {
     updateSelectizeInput(session,
                          "selectvars",
                          choices = row_names,
-                         selected = row_names[1])
+                         selected = row_names)
   })
   
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
