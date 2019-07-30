@@ -8,6 +8,7 @@ library(ggplot2)
 library(reshape2)
 library(plotrix)
 library(stats)
+library(DT)
 
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -190,7 +191,7 @@ server <- function(input, output, session) {
   text_fisher_reactive <- eventReactive(input$goBtn, {
     dfin <- capture_curr_df(input)
     get_fisher <- get_pairwise_t_test_values(dfin, input)
-    print(get_fisher)
+    return (get_fisher[3]$p.value)
   })
   
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -261,8 +262,18 @@ server <- function(input, output, session) {
   callModule(plotDownload, "barPlot", bar_plot_reactive)
   
   # Fisher table
-  output$fischertable <- renderPrint({
-    text_fisher_reactive()
+  output$fischertable <- DT::renderDataTable({
+    DT::datatable(
+      text_fisher_reactive(),
+      class = 'cell-border stripe compact',
+      extensions = "Buttons",
+      options = list(
+        processing = F,
+        dom = 'Blrtip',
+        buttons = c('copy', 'excel', 'pdf', 'print')
+      )
+    ) #%>% DT::formatSignif(., columns = c(1:4), digits = 4)
+    
   })
   
 }
@@ -292,7 +303,7 @@ ui <- navbarPage(
              mainPanel(rHandsontableOutput("exceltable"))
            )),
   tabPanel("ANOVA Table", verbatimTextOutput("anovatable")),
-  tabPanel("Fisher Table", verbatimTextOutput("fischertable")),
+  tabPanel("Fisher Table", DT::dataTableOutput("fischertable")),
   tabPanel("Bar charts", plotDownloadUI("barPlot"))
 )
 
