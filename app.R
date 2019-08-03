@@ -10,6 +10,7 @@ library(plotrix)
 library(stats)
 library(DT)
 library(RColorBrewer)
+library(wesanderson)
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #+++++    Helper function to render and save plots     +++++
@@ -20,6 +21,12 @@ plotDownloadUI <- function(id, height = 600, width = 800) {
   ns <- NS(id)
   sidebarLayout(
     sidebarPanel(
+      selectInput(
+        "colpalette",
+        "Select color palette",
+        choices = "",
+        selected = ""
+      ),
       selectizeInput(
         "selectvars",
         "Select row factors:",
@@ -210,9 +217,13 @@ server <- function(input, output, session) {
     return(data_sum)
   }
   
-  get_color_palette <- function(colpalette) {
-    if (colpalette=="grey") return (scale_fill_grey(start = .3, end = .9))
-    if (colpalette=="RdBu") return(scale_fill_manual(col=brewer.pal(n = 3, name = "RdBu")))
+  get_color_palette <- function(colpalette, ncols) {
+    if (colpalette == "grey")
+      return (scale_fill_grey(start = .3, end = .9))
+    if (colpalette %in% (brewer.pal.info %>% rownames()))
+      return(scale_fill_manual(values = brewer.pal(n = 2 + ncols, name = colpalette)))
+    if (colpalette %in% (wes_palettes %>% names()))
+      return(scale_fill_manual(values = wes_palette(n = 2 + ncols, name = colpalette)))
   }
   
   bar_plot_reactive <- eventReactive(input$replot, {
@@ -231,11 +242,11 @@ server <- function(input, output, session) {
                     width = .2,
                     position = position_dodge(.9))
     
-    p <- p + theme_classic() + labs(x = input$xlabel,
-                                    y = input$ylabel,
-                                    title = input$ptitle)
+    p <- p + theme_bw() + labs(x = input$xlabel,
+                               y = input$ylabel,
+                               title = input$ptitle)
     
-    return (p + get_color_palette(input$colpalette))
+    return (p + get_color_palette(input$colpalette, length(cols)))
     
   })
   
@@ -246,6 +257,17 @@ server <- function(input, output, session) {
                          "selectvars",
                          choices = row_names,
                          selected = row_names)
+  })
+  
+  observe({
+    palette_names <-
+      c("grey",
+        brewer.pal.info %>% rownames(),
+        wes_palettes %>% names())
+    updateSelectizeInput(session,
+                         "colpalette",
+                         choices = palette_names,
+                         selected = "grey")
   })
   
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
