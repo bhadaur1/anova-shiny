@@ -9,7 +9,7 @@ library(reshape2)
 library(plotrix)
 library(stats)
 library(DT)
-
+library(RColorBrewer)
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #+++++    Helper function to render and save plots     +++++
@@ -210,6 +210,11 @@ server <- function(input, output, session) {
     return(data_sum)
   }
   
+  get_color_palette <- function(colpalette) {
+    if (colpalette=="grey") return (scale_fill_grey(start = .3, end = .9))
+    if (colpalette=="RdBu") return(scale_fill_manual(col=brewer.pal(n = 3, name = "RdBu")))
+  }
+  
   bar_plot_reactive <- eventReactive(input$replot, {
     cols <- input$selectvars %>% sort()
     dfin <- capture_curr_df(input) %>% filter(., RF %in% cols)
@@ -226,9 +231,12 @@ server <- function(input, output, session) {
                     width = .2,
                     position = position_dodge(.9))
     
-    p + scale_fill_grey(start = .3, end = .9) + theme_bw() + labs(x = input$xlabel,
-                                                                       y = input$ylabel,
-                                                                       title = input$ptitle)
+    p <- p + theme_classic() + labs(x = input$xlabel,
+                                    y = input$ylabel,
+                                    title = input$ptitle)
+    
+    return (p + get_color_palette(input$colpalette))
+    
   })
   
   observe({
