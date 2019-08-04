@@ -302,7 +302,7 @@ server <- function(input, output, session) {
         dom = 'Blrtip',
         buttons = c('copy', 'excel', 'pdf', 'print')
       )
-    ) #%>% DT::formatSignif(., columns = c(1:4), digits = 4)
+    ) %>% DT::formatSignif(., columns = text_fisher_reactive() %>% colnames , digits = 4)
     
   })
   
