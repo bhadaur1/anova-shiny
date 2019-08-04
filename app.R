@@ -297,12 +297,13 @@ server <- function(input, output, session) {
       text_fisher_reactive(),
       class = 'cell-border stripe compact',
       extensions = "Buttons",
+      rownames = TRUE,
       options = list(
         processing = F,
         dom = 'Blrtip',
         buttons = c('copy', 'excel', 'pdf', 'print')
       )
-    ) %>% DT::formatSignif(., columns = text_fisher_reactive() %>% colnames , digits = 4)
+    ) %>% DT::formatSignif(., columns = text_fisher_reactive() %>% colnames , digits = 4) %>% formatStyle(., columns = " ", fontWeight = "bold")
     
   })
   
