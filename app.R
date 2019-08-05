@@ -177,18 +177,10 @@ server <- function(input, output, session) {
   text_aov_reactive <- eventReactive(input$goBtn, {
     dfin <- capture_curr_df(input)
     aov.model <- getaovmodel(dfin, input)
-    print(aov.model)
-    br()
-    br()
-    cat("++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
-    print(summary(aov.model))
-    br()
-    br()
-    cat("++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
-    # cat("\n")
-    # cat("Coefficients")
-    # cat("\n")
-    # print(aov.model$coefficients)
+    aov.df <- summary(aov.model)[[1]] %>% data.frame()
+    colnames(aov.df)[colnames(aov.df)=="Pr..F."] <- "P.value"
+    aov.df$Significant[aov.df$P.value<=0.05] <- "Yes"
+    return(aov.df)
   })
   
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -284,8 +276,23 @@ server <- function(input, output, session) {
   })
   
   # ANOVA table
-  output$anovatable <- renderPrint({
-    text_aov_reactive()
+  output$anovatable <- DT::renderDataTable({
+    DT::datatable(
+      text_aov_reactive(),
+      class = 'cell-border stripe compact',
+      extensions = "Buttons",
+      rownames = TRUE,
+      options = list(
+        processing = F,
+        dom = 'Blrtip',
+        buttons = c('copy', 'excel', 'pdf', 'print')
+      )
+    ) %>%
+      DT::formatSignif(., columns = text_aov_reactive() %>% colnames , digits = 4) %>%
+      formatStyle(., columns = " ", fontWeight = "bold") %>%
+      formatStyle('Significant',
+                  color = styleEqual("Yes", c('white')),
+                  backgroundColor = styleEqual("Yes", c('green')))
   })
   
   # Bar plot
@@ -303,8 +310,9 @@ server <- function(input, output, session) {
         dom = 'Blrtip',
         buttons = c('copy', 'excel', 'pdf', 'print')
       )
-    ) %>% DT::formatSignif(., columns = text_fisher_reactive() %>% colnames , digits = 4) %>% formatStyle(., columns = " ", fontWeight = "bold")
-    
+    ) %>%
+      DT::formatSignif(., columns = text_fisher_reactive() %>% colnames , digits = 4) %>%
+      formatStyle(., columns = " ", fontWeight = "bold")
   })
   
 }
@@ -333,7 +341,7 @@ ui <- navbarPage(
              ),
              mainPanel(rHandsontableOutput("exceltable"))
            )),
-  tabPanel("ANOVA Table", verbatimTextOutput("anovatable")),
+  tabPanel("ANOVA Table", DT::dataTableOutput("anovatable")),
   tabPanel("Fisher Table", DT::dataTableOutput("fischertable")),
   tabPanel("Bar charts", plotDownloadUI("barPlot"))
 )
