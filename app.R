@@ -11,6 +11,7 @@ library(stats)
 library(DT)
 library(RColorBrewer)
 library(wesanderson)
+library(plotly)
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #+++++    Helper function to render and save plots     +++++
@@ -56,29 +57,30 @@ plotDownloadUI <- function(id, height = 600, width = 800) {
       ),
       downloadButton(ns("download_plot"), "Download figure")
     ),
-    mainPanel(plotOutput(
-      ns('plot'), height = height, width = width
-    ))
+    # mainPanel(plotOutput(
+    #   ns('plot'), height = height, width = width
+    # ))
+    mainPanel(plotlyOutput(ns('plot')))
   )
 }
 
 # Server side
 plotDownload <- function(input, output, session, plotFun) {
-  output$plot <- renderPlot({
+  output$plot <- renderPlotly({
     plotFun()
   })
   
-  output$download_plot <- downloadHandler(
-    filename = function() {
-      "plot.png"
-    },
-    content = function(file) {
-      ggsave(file,
-             plotFun(),
-             width = input$pwidth,
-             height = input$pwidth)
-    }
-  )
+  # output$download_plot <- downloadHandler(
+  #   filename = function() {
+  #     "plot.png"
+  #   },
+  #   content = function(file) {
+  #     ggsave(file,
+  #            plotFun(),
+  #            width = input$pwidth,
+  #            height = input$pwidth)
+  #   }
+  # )
 }
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -226,19 +228,22 @@ server <- function(input, output, session) {
                         groupnames = c("CF", "RF"))
     
     # Standard deviation of the mean as error bar
-    p <- ggplot(df3, aes(x = RF, y = value, fill = CF)) +
-      geom_bar(stat = "identity", position = position_dodge()) +
-      # geom_text(aes(label=round(value,1)), vjust=1.6, color="white",
-      #           position = position_dodge(0.9), size=3.5) +
-      geom_errorbar(aes(ymin = value - sd, ymax = value + sd),
-                    width = .2,
-                    position = position_dodge(.9))
+    # p <- ggplot(df3, aes(x = RF, y = value, fill = CF)) +
+    #   geom_bar(stat = "identity", position = position_dodge()) +
+    #   geom_errorbar(aes(ymin = value - sd, ymax = value + sd),
+    #                 width = .2,
+    #                 position = position_dodge(.9))
+    # 
+    # p <- p + theme_bw() + labs(x = input$xlabel,
+    #                            y = input$ylabel,
+    #                            title = input$ptitle)
     
-    p <- p + theme_bw() + labs(x = input$xlabel,
-                               y = input$ylabel,
-                               title = input$ptitle)
+    p <- df3 %>% plot_ly(x = ~ RF,
+            y = ~ value,
+            color = ~ CF,
+            type = "bar")
     
-    return (p + get_color_palette(input$colpalette, length(cols)))
+    # return (p + get_color_palette(input$colpalette, length(cols)))
     
   })
   
